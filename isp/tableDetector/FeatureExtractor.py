@@ -69,7 +69,7 @@ class FeatureExtractor(object):
             self.__calcItem__(page.getContents(), currentVector, trainFl) 
         return currentVector
     def loadExample(self, pdfFile):
-        return self.scaler.transform(self.__loadExample__(pdfFile))
+        return self.scaler.transform([self.__loadExample__(pdfFile)])[0]
     def __init__(self):
         self.symbolCount = 0
         self.indexFile = None
