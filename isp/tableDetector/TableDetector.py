@@ -11,8 +11,8 @@ class TableDetector(object):
     '''    
     def trainFrom(self, dirPath):
         self.fe = FeatureExtractor()
-        self.fe.initialize(dirPath)
-        rA, rB = self.fe.loadExamples(dirPath)
+        #self.fe.initialize(dirPath)
+        rA, rB = self.fe.loadExamples(dirPath, True)
         self.train(rA, rB)
         
     def predictFile(self, filePath):
@@ -34,7 +34,7 @@ class TableDetector(object):
         return self.main.predict([features])
 
     def __init__(self):
-        self.main = LogisticRegression(max_iter=200)
+        self.main = LogisticRegression(solver='lbfgs', max_iter=200)
         self.fe = None
         '''
         Constructor
