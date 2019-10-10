@@ -1,1 +1,1 @@
-__all__=["ArxivInitializer","FeatureExtrator","Runner", "TableDetector" ]
+__all__=["ArxivInitializer","FeatureExtrator","TableDetectorServer", "TableDetector" ]

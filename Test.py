@@ -11,4 +11,4 @@ if __name__ == '__main__':
     #td.trainFrom('repository2')
     #print(td.checkDirectory('articles'))
     serv = TableDetectorServer.TableDetectorServer()
-    serv.startHTTPServer(65500, 'articles')
+    serv.startHTTPServer(65500, 'repository2', 'articles')
