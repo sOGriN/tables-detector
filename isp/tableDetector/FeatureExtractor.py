@@ -4,7 +4,6 @@ Created on Oct 5, 2019
 @author: grigorii
 '''
 import PyPDF2
-from PyPDF2.pdf import PageObject
 import os
 from PyPDF2.generic import IndirectObject, ArrayObject
 from _operator import index
@@ -22,11 +21,9 @@ class FeatureExtractor(object):
         if self.indexFile != None:
             self.indexFile.close()
         self.indexFile = open(os.path.join(dirPath, 'index.txt'), 'r')
-    def loadExamples(self, dirPath, trainFl=False):
-        if trainFl:
-            self.scaler = preprocessing.StandardScaler()
+    def loadExamplesFromPdf(self, dirPath, trainFl):
         resultA = []
-        resultB = []        
+        resultB = []   
         self.__loadIndex__(dirPath)
         while True:
             currentLine = self.indexFile.readline();
@@ -40,7 +37,35 @@ class FeatureExtractor(object):
             for lst in resultA:
                 for n in range(len(lst), self.symbolCount):
                     lst.append(0)
-        return self.scaler.fit_transform(numpy.array(resultA)), numpy.array(resultB)
+        return resultA, resultB
+    def loadExamples(self, dirPath, trainFl=False):
+        resultA, resultB, symbols = None, None, None
+        if trainFl:
+            self.scaler = preprocessing.StandardScaler()
+            if not os.path.exists(os.path.join(dirPath, 'resultA.npy')):
+                resultA, resultB = self.loadExamplesFromPdf(dirPath, trainFl)
+                resultA = numpy.array(resultA)
+                resultB = numpy.array(resultB)
+                numpy.save(os.path.join(dirPath, 'resultA'), resultA)
+                numpy.save(os.path.join(dirPath, 'resultB'), resultB)
+                symbols =  [0 for x in range(0, self.symbolCount)]
+                for s in self.transform.keys():
+                    symbols[self.transform.get(s)] = s;
+                numpy.save(os.path.join(dirPath, 'symbols.npy'), numpy.array(symbols))
+            else:
+                resultA = numpy.load(os.path.join(dirPath, 'resultA.npy'))
+                resultB = numpy.load(os.path.join(dirPath, 'resultB.npy'))
+                symbols = numpy.load(os.path.join(dirPath, 'symbols.npy'))
+                self.symbolCount = len(symbols)
+                for index, s in enumerate(symbols):
+                    self.transform[s] = index
+        else:            
+            resultA, resultB = self.loadExamplesFromPdf(dirPath, trainFl)
+            resultA = numpy.array(resultA)
+            resultB = numpy.array(resultB)
+        return self.scaler.fit_transform(resultA), resultB
+    def translate(self, buffer, index):
+        return buffer[index] * 256 + buffer[index+1]
     def __calcItem__(self, item, vector, trainFl):
         if (type(item) == ArrayObject):
             for current in item:
@@ -51,13 +76,13 @@ class FeatureExtractor(object):
             else:
                 buffer = item.getData()
                 for index in range(0, len(buffer) - 1):
-                    if (self.transform.get(buffer[index] * 256 + buffer[index+1]) == None):
+                    if (self.transform.get(self.translate(buffer, index)) == None):
                         if (trainFl):
-                            self.__addSymbol__(buffer[index] * 256 + buffer[index+1])
+                            self.__addSymbol__(self.translate(buffer, index))
                             vector.append(0)
-                            vector[self.transform.get(buffer[index]* 256 + buffer[index+1])]+= 1
+                            vector[self.transform.get(self.translate(buffer, index))]+= 1
                     else:
-                        vector[self.transform.get(buffer[index]* 256 + buffer[index+1])]+= 1
+                        vector[self.transform.get(self.translate(buffer, index))]+= 1
     def __addSymbol__(self, symbol):
         self.transform[symbol] = self.symbolCount
         self.symbolCount += 1

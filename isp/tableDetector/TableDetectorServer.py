@@ -4,10 +4,7 @@ Created on Oct 9, 2019
 @author: grigorii
 '''
 from _io import BytesIO
-from http.server import SimpleHTTPRequestHandler, HTTPServer, \
-    BaseHTTPRequestHandler
-import select
-import socket 
+from http.server import HTTPServer, BaseHTTPRequestHandler
 import sys
 
 from isp.tableDetector.TableDetector import TableDetector
@@ -67,14 +64,16 @@ class TableDetectorServer(object):
     def __testPdf__(self, rawPdf):
         print('TEST: ' + rawPdf)
         #return self.tableDetector.predictFile(rawPdf)
-    def startHTTPServer(self, port, dirPath, testPath):
+    def startHTTPServer(self, port, dirPath, testPath=None):
         self.__initializeTableDetector__(dirPath)
-        print(self.tableDetector.checkDirectory(testPath))
+        if testPath != None:
+            print(self.tableDetector.checkDirectory(testPath))
         def callback(rawData):
             return self.tableDetector.predictFile(rawData)
         self.server_address = ('0.0.0.0', port)
         self.serv = HTTPServerClass(self.server_address, HTTPProcessor)
         self.serv.set_callback(callback)
+        print('Ready: ' + str(self.server_address[0])+':'+str(self.server_address[1]))
         self.serv.serve_forever()
     def __init__(self):
         self.serv = None
