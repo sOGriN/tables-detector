@@ -1,0 +1,6 @@
+Start (python, port 80):
+python3 Test.py
+
+Start (docker): at ./docker
+docker build ./ -t table_detector
+docker run -p [port]:80 -ti table_detector
